@@ -116,24 +116,28 @@ export class LongShortService {
                 timeframe: "1Min"
               },
             ).next()
-            console.log(resp);
             // polygon and alpaca have different responses to keep backwards
             // compatibility, so we handle it a bit differently
-            if (this.alpaca.instance.configuration.usePolygon) {
-            //   const l = resp[stock.name].length
-                const last_close = resp.value.ClosePrice
-                const first_open = resp.value.OpenPrice
+            if(!resp.done){
+              if (this.alpaca.instance.configuration.usePolygon) {
+              //   const l = resp[stock.name].length
+                  const last_close = resp.value.ClosePrice
+                  const first_open = resp.value.OpenPrice
+                  stock.pc = (last_close - first_open) / first_open
+              } else {
+                  //   const l = resp[stock.name].length
+                  const last_close = resp.value.ClosePrice
+                  const first_open = resp.value.OpenPrice
                 stock.pc = (last_close - first_open) / first_open
-            } else {
-                //   const l = resp[stock.name].length
-                const last_close = resp.value.ClosePrice
-                const first_open = resp.value.OpenPrice
-              stock.pc = (last_close - first_open) / first_open
+              }
+            }
+            else{
+              this.logger.error(stock.name+' is closed');
             }
           } catch (err) {
             this.logger.error(err.message)
           }
-        //   resolve()
+        resolve(null)
         })
       }),
     )
@@ -196,15 +200,19 @@ export class LongShortService {
       stocks.map(stock => {
         return new Promise(async resolve => {
           try {
-            const resp = await this.alpaca.instance.getBarsV2('minute', stock, {
-              limit: 1,
-            }).next()
+            const resp = await this.alpaca.instance.getBarsV2(
+              stock,
+              {
+                limit: 1,
+                timeframe: "1Min"
+              },
+            ).next()
             // polygon and alpaca have different responses to keep backwards
             // compatibility, so we handle it a bit differently
             if (this.alpaca.instance.configuration.usePolygon) {
-              resolve(resp[stock][0].c)
+              resolve(resp.value.ClosePrice)
             } else {
-              resolve(resp[stock][0].closePrice)
+              resolve(resp.value.ClosePrice)
             }
           } catch (err) {
             this.logger.error(err.message)
@@ -231,7 +239,7 @@ export class LongShortService {
     let positions
     try {
       positions = await this.alpaca.instance.getPositions()
-      console.log(positions)
+      // console.log(positions)
     } catch (err) {
       this.logger.error(err.error)
     }

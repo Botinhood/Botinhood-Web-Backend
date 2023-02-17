@@ -104,7 +104,7 @@ export class AlpacaService {
           } catch (err) {
             this.logger.error(err.error)
           }
-        //   resolve()
+        resolve(null);
         })
       }),
     )
