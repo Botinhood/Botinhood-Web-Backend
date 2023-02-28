@@ -1,30 +1,3 @@
-export const STOCKS = [
-    'DOMO',
-    'TLRY',
-    'SQ',
-    'MRO',
-    'AAPL',
-    'GM',
-    'SNAP',
-    'SHOP',
-    'SPLK',
-    'BA',
-    'AMZN',
-    'SUI',
-    'SUN',
-    'TSLA',
-    'CGC',
-    'SPWR',
-    'NIO',
-    'CAT',
-    'MSFT',
-    'PANW',
-    'OKTA',
-    'TM',
-    'ATVI',
-    'GS',
-    'BAC',
-    'MS',
-    'TWLO',
-    'QCOM',
-  ]
+import { GlobalService } from 'src/utils/global.service'
+
+export const STOCKS = GlobalService.longShort
