@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@alpacahq/alpaca-trade-api": "1.4.0",
+    "@alpacahq/alpaca-trade-api": "^2.16.1",
     "@nestjs/common": "7.0.0",
     "@nestjs/config": "0.5.0",
     "@nestjs/core": "7.0.0",
