@@ -8,7 +8,7 @@ export class StockService {
         return GlobalService.longShort;
     }
 
-    // Create a funtion that will change the const list in long short constants
+    // A funtion that will change the const list in long short constants
     setLongShort(stockDto: Stock): string[] {
         const newStocks = stockDto.stocks;
         GlobalService.longShort = newStocks;
