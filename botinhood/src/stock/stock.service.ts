@@ -8,6 +8,18 @@ export class StockService {
         return GlobalService.longShort;
     }
 
+    getLong(): string[] {
+        return GlobalService.long;
+    }
+
+    getShort(): string[] {
+        return GlobalService.short;
+    }
+
+    getBotBars(): object[] {
+        return GlobalService.bars;
+    }
+
     // Create a funtion that will change the const list in long short constants
     setLongShort(stockDto: Stock): string[] {
         const newStocks = stockDto.stocks;

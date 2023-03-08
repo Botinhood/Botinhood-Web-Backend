@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { STOCKS } from './long-short.constants'
+import { STOCKS } from './long-short.constants';
+import { GlobalService } from 'src/utils/global.service'
 import { StockItem } from './long-short.types'
 import { AlpacaService } from 'src/alpaca/alpaca.service'
 
@@ -32,7 +33,7 @@ export class LongShortService {
 
     this.timeToClose = null
 
-    this.stockList = STOCKS.map(item => ({ name: item, pc: 0 }))
+    this.stockList = GlobalService.longShort.map(item => ({ name: item, pc: 0 }))
 
     this.long = []
     this.short = []
@@ -50,7 +51,6 @@ export class LongShortService {
   async run(): Promise<void> {
     // First, cancel any existing orders so they don't impact our buying power.
     await this.alpaca.cancelExistingOrders()
-
     // Wait for market to open.
     this.logger.log('Waiting for market to open...')
     await this.alpaca.awaitMarketOpen()
@@ -59,9 +59,28 @@ export class LongShortService {
     await this.rebalancePorfolio(THIRTY_SECONDS)
   }
 
+  updateStockList(){
+    var prevStockList = this.stockList;
+    this.stockList = GlobalService.longShort.map(item => ({ name: item, pc: 0 }))
+    // If any of the stocks match, carry over its own put-call ratio
+    for (let i = 0; i < prevStockList.length; i++) {
+      for (let j = 0; j < this.stockList.length; j++) {
+        if(prevStockList[i].name==this.stockList[j].name){
+          this.stockList[j].pc=prevStockList[i].pc;
+        }
+      }
+    }
+    this.stockList.sort((a, b) => {
+      return a.pc - b.pc
+    })
+  }  
+
   async rebalancePorfolio(seconds: number): Promise<void> {
     // Rebalance the portfolio every minute, making necessary trades.
     const spin = setInterval(async () => {
+      // Update the stock list from user
+      this.updateStockList();
+
       // Figure out when the market will close so we can prepare to sell beforehand.
       const INTERVAL = 15 // minutes
       this.timeToClose = await this.alpaca.getTimeToClose()
@@ -105,6 +124,7 @@ export class LongShortService {
 
   // Get percent changes of the stock prices over the past 10 minutes.
   getPercentChanges(limit = 10): Promise<unknown> {
+    GlobalService.bars=[]
     return Promise.all(
       this.stockList.map(stock => {
         return new Promise(async resolve => {
@@ -116,18 +136,22 @@ export class LongShortService {
                 timeframe: "1Min"
               },
             ).next()
+            
+            // Add bars to global variable to be retrieved later.
+            GlobalService.bars.push({name: stock.name, bar: resp})
+            
             // polygon and alpaca have different responses to keep backwards
             // compatibility, so we handle it a bit differently
             if(!resp.done){
               if (this.alpaca.instance.configuration.usePolygon) {
               //   const l = resp[stock.name].length
-                  const last_close = resp.value.ClosePrice
-                  const first_open = resp.value.OpenPrice
-                  stock.pc = (last_close - first_open) / first_open
+                const last_close = resp.value.ClosePrice
+                const first_open = resp.value.OpenPrice
+                stock.pc = (last_close - first_open) / first_open
               } else {
-                  //   const l = resp[stock.name].length
-                  const last_close = resp.value.ClosePrice
-                  const first_open = resp.value.OpenPrice
+                //   const l = resp[stock.name].length
+                const last_close = resp.value.ClosePrice
+                const first_open = resp.value.OpenPrice
                 stock.pc = (last_close - first_open) / first_open
               }
             }
@@ -228,7 +252,8 @@ export class LongShortService {
 
     // Clear existing orders again.
     await this.alpaca.cancelExistingOrders()
-
+    GlobalService.long=this.long
+    GlobalService.short=this.short
     this.logger.log(`We are taking a long position in: ${this.long.toString()}`)
     this.logger.log(
       `We are taking a short position in: ${this.short.toString()}`,

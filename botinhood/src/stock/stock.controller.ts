@@ -15,6 +15,21 @@ export class StockController {
         return this.stockService.getLongShort();
     }
 
+    @Get('/getLong')
+    getLong(): string[] {
+        return this.stockService.getLong();
+    }
+
+    @Get('/getShort')
+    getShort(): string[] {
+        return this.stockService.getShort();
+    }
+
+    @Get('/getBotBars')
+    getBotBars(): object[] {
+        return this.stockService.getBotBars();
+    }
+
     @Post('/setLongShort')
     setLongShort(@Body() stockDto: StockDto): string[]{
         return this.stockService.setLongShort(stockDto);

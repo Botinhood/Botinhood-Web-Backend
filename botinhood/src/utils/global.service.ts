@@ -29,4 +29,7 @@ export class GlobalService{
         'TWLO',
         'QCOM',
       ]; 
+  static long: string[]=[]
+  static short: string[]=[]
+  static bars:object[]=[]
 }
