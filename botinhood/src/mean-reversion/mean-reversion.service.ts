@@ -58,16 +58,21 @@ export class MeanReversionService {
     const promBars = new Promise((resolve, reject) => {
       const barChecker = setInterval(async () => {
         await this.alpaca.instance.getCalendar(Date.now()).then(async resp => {
-          const marketOpen = resp[0].open
+          const marketOpen = '2023-03-13T'+resp[0].open+':00-04:00'
+          const currentTime = new Date(Date.now()-900000).toISOString()
+          const slicedTime = currentTime.slice(0,currentTime.indexOf('.'))+'Z'
+          console.log(slicedTime)
           await this.alpaca.instance
-            .getBarsV2('minute', this.stock, { start: marketOpen })
+            .getBarsV2(this.stock, { start: slicedTime,timeframe: '1Min' })
             .next()
             .then(resp => {
-              const bars = resp[this.stock]
+              // console.log(resp)
+              const bars = resp.value
+              console.log(bars)
               if (bars.length >= minutes) {
                 clearInterval(barChecker)
               }
-            }).resolve()
+            })
             .catch(err => {
               this.logger.error(err.error, 'promBars')
             })
@@ -142,7 +147,7 @@ export class MeanReversionService {
     // Get the new updated price and running average.
     let bars
     await this.alpaca.instance
-      .getBarsV2('minute', this.stock, { limit: 20 })
+      .getBarsV2(this.stock, { limit: 20, timeframe: '1Min' })
       .next()
       .then(resp => {
         bars = resp[this.stock]
