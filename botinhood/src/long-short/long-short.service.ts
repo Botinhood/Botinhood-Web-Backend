@@ -125,6 +125,7 @@ export class LongShortService {
   // Get percent changes of the stock prices over the past 10 minutes.
   getPercentChanges(limit = 10): Promise<unknown> {
     GlobalService.bars=[]
+    
     return Promise.all(
       this.stockList.map(stock => {
         return new Promise(async resolve => {
@@ -132,11 +133,11 @@ export class LongShortService {
             const resp = await this.alpaca.instance.getBarsV2(
               stock.name,
               {
+                timeframe: '1Min',
                 limit: limit,
-                timeframe: "1Min"
               },
             ).next()
-            
+            console.log(stock.name, resp)
             // Add bars to global variable to be retrieved later.
             GlobalService.bars.push({name: stock.name, bar: resp})
             
