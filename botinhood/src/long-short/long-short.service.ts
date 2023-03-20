@@ -122,36 +122,50 @@ export class LongShortService {
     }, seconds * 1000)
   }
 
+  sliceTime(time){
+    return time.slice(0,time.indexOf('.'))+'Z'
+  }
+
   // Get percent changes of the stock prices over the past 10 minutes.
   getPercentChanges(limit = 10): Promise<unknown> {
     GlobalService.bars=[]
+    const TWENTYFIVE_MINUTES=1500000
+    const FIFTEEN_MINUTES=900000
+    let tenMinAgoTime = new Date(Date.now()-TWENTYFIVE_MINUTES).toISOString()
+    let slicedStartTime = this.sliceTime(tenMinAgoTime)
+    let currentTime = this.sliceTime(new Date(Date.now()-FIFTEEN_MINUTES).toISOString())
+    console.log(slicedStartTime)
     return Promise.all(
       this.stockList.map(stock => {
         return new Promise(async resolve => {
           try {
-            const resp = await this.alpaca.instance.getBarsV2(
+            const bars = this.alpaca.instance.getBarsV2(
               stock.name,
               {
-                limit: limit,
-                timeframe: "1Min"
+                start: slicedStartTime,
+                timeframe: this.alpaca.instance.newTimeframe(1, this.alpaca.instance.timeframeUnit.MIN),
+                limit:limit
               },
-            ).next()
-            
+            )
+            const resp = [];
+            for await (let b of bars) {
+              resp.push(b);
+            }
             // Add bars to global variable to be retrieved later.
             GlobalService.bars.push({name: stock.name, bar: resp})
             
             // polygon and alpaca have different responses to keep backwards
             // compatibility, so we handle it a bit differently
-            if(!resp.done){
+            if(!bars.done){
               if (this.alpaca.instance.configuration.usePolygon) {
-              //   const l = resp[stock.name].length
-                const last_close = resp.value.ClosePrice
-                const first_open = resp.value.OpenPrice
+                const l = resp.length
+                const last_close = resp[l-1].ClosePrice
+                const first_open = resp[0].OpenPrice
                 stock.pc = (last_close - first_open) / first_open
               } else {
-                //   const l = resp[stock.name].length
-                const last_close = resp.value.ClosePrice
-                const first_open = resp.value.OpenPrice
+                  const l = resp.length
+                const last_close = resp[l-1].ClosePrice
+                const first_open = resp[0].OpenPrice
                 stock.pc = (last_close - first_open) / first_open
               }
             }
@@ -292,7 +306,7 @@ export class LongShortService {
                       ? this.alpaca.sideType.SELL
                       : this.alpaca.sideType.BUY,
                 })
-                // resolve()
+                resolve(null)
               } catch (err) {
                 this.logger.error(err.error)
               }
@@ -305,7 +319,7 @@ export class LongShortService {
                   stock: symbol,
                   side: this.alpaca.sideType.SELL,
                 })
-                // resolve()
+                resolve(null)
               } catch (err) {
                 this.logger.error(err.error)
               }
@@ -331,7 +345,7 @@ export class LongShortService {
               }
               executed.short.push(symbol)
               this.blacklist.add(symbol)
-            //   resolve()
+            resolve(null)
             }
           } else if (position.side === this.alpaca.positionType.SHORT) {
             // Position in long list.
@@ -342,7 +356,7 @@ export class LongShortService {
                 stock: symbol,
                 side: this.alpaca.sideType.BUY,
               })
-            //   resolve()
+            resolve(null)
             } catch (err) {
               this.logger.error(err.error)
             }
@@ -367,7 +381,7 @@ export class LongShortService {
             }
             executed.long.push(symbol)
             this.blacklist.add(symbol)
-            // resolve()
+            resolve(null)
           }
         })
       }),
@@ -455,7 +469,7 @@ export class LongShortService {
           await Promise.all(allProms)
         }
 
-        // resolve()
+        resolve(null)
       })
     } catch (err) {
       this.logger.error(err.error, 'Reorder stocks try, catch')
@@ -490,7 +504,7 @@ export class LongShortService {
                 this.logger.error(err.error, 'sendBatchOrder')
               }
             }
-            // resolve()
+            resolve(null)
           })
         }),
       )

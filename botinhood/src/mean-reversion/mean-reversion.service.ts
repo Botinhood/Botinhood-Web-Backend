@@ -57,21 +57,50 @@ export class MeanReversionService {
     // Get the running average of prices of the last 20 minutes, waiting until we have 20 bars from market open.
     const promBars = new Promise((resolve, reject) => {
       const barChecker = setInterval(async () => {
-        await this.alpaca.instance.getCalendar(Date.now()).then(async resp => {
-          const marketOpen = resp[0].open
-          await this.alpaca.instance
-            .getBarsV2('minute', this.stock, { start: marketOpen })
-            .next()
-            .then(resp => {
-              const bars = resp[this.stock]
-              if (bars.length >= minutes) {
-                clearInterval(barChecker)
-              }
-            }).resolve()
-            .catch(err => {
-              this.logger.error(err.error, 'promBars')
-            })
+        const FIFTEEN_MINUTES=900000;
+        let X_MINUTES=60000*minutes+FIFTEEN_MINUTES
+        let startTime = new Date(Date.now()-X_MINUTES).toISOString()
+        let slicedStartTime = startTime.slice(0,startTime.indexOf('.'))+'Z'
+        console.log(slicedStartTime)
+
+        let resp = this.alpaca.instance.getBarsV2(this.stock, {
+          start: slicedStartTime,
+          timeframe: '1Min' 
         })
+        const bars = [];
+        for await (let b of resp) {
+          bars.push(b);
+        }
+        console.log(bars.length)
+        if (bars.length >= minutes) {
+          console.log('hit')
+          clearInterval(barChecker)
+        }
+        // await this.alpaca.instance.getCalendar(Date.now()).then(async resp => {
+        //   const marketOpen = '2023-03-13T'+resp[0].open+':00-04:00'
+        //   const FIFTEEN_MINUTES=900000;
+        //   let X_MINUTES=60000*minutes+FIFTEEN_MINUTES
+        //   let startTime = new Date(Date.now()-X_MINUTES).toISOString()
+        //   let slicedStartTime = startTime.slice(0,startTime.indexOf('.'))+'Z'
+        //   console.log(slicedStartTime)
+        //   await this.alpaca.instance
+        //     .getBarsV2(this.stock, { start: slicedStartTime,timeframe: '1Min' })
+        //     .then(resp => {
+        //       // console.log(resp)
+        //       const bars = [];
+        //       for (let b of resp) {
+        //         bars.push(b);
+        //       }
+        //       // const bars = resp.value
+        //       console.log(bars)
+        //       if (bars.length >= minutes) {
+        //         clearInterval(barChecker)
+        //       }
+        //     })
+        //     .catch(err => {
+        //       this.logger.error(err.error, 'promBars')
+        //     })
+        // })
       }, MINUTE)
     })
     this.logger.log('Waiting for 20 bars...')
@@ -142,7 +171,7 @@ export class MeanReversionService {
     // Get the new updated price and running average.
     let bars
     await this.alpaca.instance
-      .getBarsV2('minute', this.stock, { limit: 20 })
+      .getBarsV2(this.stock, { limit: 20, timeframe: '1Min' })
       .next()
       .then(resp => {
         bars = resp[this.stock]
