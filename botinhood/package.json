@@ -21,15 +21,14 @@
   },
   "dependencies": {
     "@alpacahq/alpaca-trade-api": "^2.16.1",
-    "@nestjs/common": "7.0.0",
-    "@nestjs/config": "0.5.0",
-    "@nestjs/core": "7.0.0",
-    "@nestjs/platform-express": "7.0.0",
-    "@nestjs/schedule": "0.4.0",
-    "@types/node": "13.9.1",
-    "reflect-metadata": "0.1.13",
-    "rimraf": "3.0.2",
-    "rxjs": "6.5.4"
+    "@nestjs/common": "^9.3.10",
+    "@nestjs/config": "^2.3.1",
+    "@nestjs/core": "^9.0.0",
+    "@nestjs/mongoose": "^9.2.1",
+    "@nestjs/platform-express": "^9.0.0",
+    "mongoose": "^6.10.2",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.2.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
