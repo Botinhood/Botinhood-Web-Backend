@@ -287,11 +287,14 @@ export class LongShortService {
 
     this.blacklist.clear()
 
+    GlobalService.quantity={}
     await Promise.all(
       positions.map(position => {
         return new Promise(async (resolve, reject) => {
           const quantity = Math.abs(position.qty)
           const symbol = position.symbol
+
+          GlobalService.quantity[symbol]=quantity
 
           if (this.long.indexOf(symbol) < 0) {
             // Position is not in short list.

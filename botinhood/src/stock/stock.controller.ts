@@ -30,6 +30,11 @@ export class StockController {
         return this.stockService.getBotBars();
     }
 
+    @Get('/getQuantity')
+    getQuantity(): object {
+        return this.stockService.getQuantity();
+    }
+
     @Post('/setLongShort')
     setLongShort(@Body() stockDto: StockDto): string[]{
         return this.stockService.setLongShort(stockDto);
