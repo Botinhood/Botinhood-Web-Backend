@@ -1,3 +1,22 @@
+/*
+ * Author: Alexander Berryhill
+ * 
+ * The code defines a BotService class as an injectable service that 
+ * initializes a mean-reversion or long-short algorithm based on the 
+ * BOT_TYPE environmental variable. The BotService implements the 
+ * OnModuleInit interface, which provides a onModuleInit method that 
+ * is called when the module is initialized. The BotService class has 
+ * a logger property to log messages, and uses a ConfigService instance 
+ * to get the necessary environmental variables to initialize the 
+ * mean-reversion and long-short services.
+ * 
+ * The run method is asynchronous and initializes the bot based on the 
+ * BOT_TYPE environmental variable. If the BOT_TYPE is LONG_SHORT, the 
+ * longShort algorithm is initialized, and if it is MEAN_REVERSION, the 
+ * meanReversion algorithm is initialized.
+*/
+
+
 import { Injectable, Logger } from '@nestjs/common'
 import { STOCKS } from './long-short.constants';
 import { GlobalService } from 'src/utils/global.service'

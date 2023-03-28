@@ -1,44 +1,60 @@
+// Import necessary modules and types
 import { Injectable, Logger } from '@nestjs/common'
 import { Order, Clock } from './alpaca.types'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Alpaca = require('@alpacahq/alpaca-trade-api')
 
+// Set a constant variable for a minute in milliseconds
 const MINUTE = 60000
 
+// Define the AlpacaService class and mark it as injectable
 @Injectable()
 export class AlpacaService {
+  // Declare class variables
   instance: typeof Alpaca
   timeToClose: number
   sideType = { BUY: 'buy', SELL: 'sell' }
   positionType = { LONG: 'long', SHORT: 'short' }
   private readonly logger = new Logger(AlpacaService.name)
 
+  // Constructor takes in an object with the API key ID, secret key, and paper trading flag
   constructor({ keyId, secretKey, paper = true }) {
+    // Initialize the Alpaca API client instance with the given keys and paper trading flag
     this.instance = new Alpaca({
       keyId: keyId,
       secretKey: secretKey,
       paper: paper,
     })
 
+    // Set the timeToClose variable to null initially
     this.timeToClose = null
   }
 
+  // Wait for the market to open before executing any further code
   async awaitMarketOpen(): Promise<void> {
     return new Promise(resolve => {
+      // Define an async function to check the market's status
       const check = async () => {
         try {
+          // Get the current clock status of the market
           const clock = await this.instance.getClock()
+
+          // If the market is open, resolve the promise
           if (clock.is_open) {
             resolve()
           } else {
+            // If the market is closed, calculate the time until it opens again
             const openTime = await this.getOpenTime()
             const currTime = await this.getCurrentTime()
             this.timeToClose = Math.floor((openTime - currTime) / 1000 / 60)
+
+            // Log the time until the market opens again
             this.logger.log(
               `${this.numberToHourMinutes(
                 this.timeToClose,
               )} til next market open.`,
             )
+
+            // Wait for one minute and then check the market status again
             setTimeout(check, MINUTE)
           }
         } catch (err) {
@@ -49,6 +65,7 @@ export class AlpacaService {
     })
   }
 
+  // Get the time at which the market opens
   async getOpenTime(): Promise<number> {
     const clock: Clock = await this.instance.getClock()
     return new Date(
@@ -56,6 +73,7 @@ export class AlpacaService {
     ).getTime()
   }
 
+  // Get the time at which the market closes
   async getClosingTime(): Promise<number> {
     const clock: Clock = await this.instance.getClock()
     return new Date(
@@ -63,6 +81,7 @@ export class AlpacaService {
     ).getTime()
   }
 
+  // Get the current time according to the market's clock
   async getCurrentTime(): Promise<number> {
     const clock: Clock = await this.instance.getClock()
     return new Date(
@@ -70,12 +89,14 @@ export class AlpacaService {
     ).getTime()
   }
 
+  // Calculate the time remaining until the market closes
   async getTimeToClose(): Promise<number> {
     const closingTime = await this.getClosingTime()
     const currentTime = await this.getCurrentTime()
     return Math.abs(closingTime - currentTime)
   }
 
+  // Convert a number representing minutes to hours
   numberToHourMinutes(number: number): string {
     const hours = number / 60
     const realHours = Math.floor(hours)
