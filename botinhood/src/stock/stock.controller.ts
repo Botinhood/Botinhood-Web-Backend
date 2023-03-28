@@ -50,6 +50,11 @@ export class StockController {
     }
 
     // Define an HTTP POST route to set the long and short stocks
+    @Get('/getQuantity')
+    getQuantity(): object {
+        return this.stockService.getQuantity();
+    }
+
     @Post('/setLongShort')
     setLongShort(@Body() stockDto: StockDto): string[]{
         return this.stockService.setLongShort(stockDto);

@@ -22,6 +22,7 @@ export class AlpacaService {
     this.instance = new Alpaca({
       keyId: keyId,
       secretKey: secretKey,
+      // access_token: 'e8b7bd28-aa70-493d-9d9c-5cde2ff212fd',
       paper: paper,
     })
 

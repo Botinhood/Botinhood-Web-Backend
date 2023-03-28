@@ -1,7 +1,6 @@
 export class GlobalService{ 
     static longShort: string[]=[
         'DOMO',
-        'TLRY',
         'SQ',
         'MRO',
         'AAPL',
@@ -14,7 +13,6 @@ export class GlobalService{
         'SUI',
         'SUN',
         'TSLA',
-        'CGC',
         'SPWR',
         'NIO',
         'CAT',
@@ -32,4 +30,5 @@ export class GlobalService{
   static long: string[]=[]
   static short: string[]=[]
   static bars:object[]=[]
+  static quantity: object={}
 }

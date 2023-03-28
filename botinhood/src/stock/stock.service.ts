@@ -38,6 +38,11 @@ export class StockService {
     }
 
     // Sets the long-short stocks list to the given list
+    getQuantity(): object {
+        return GlobalService.quantity;
+    }
+
+    // Create a funtion that will change the const list in long short constants
     setLongShort(stockDto: Stock): string[] {
         const newStocks = stockDto.stocks;
         GlobalService.longShort = newStocks;
